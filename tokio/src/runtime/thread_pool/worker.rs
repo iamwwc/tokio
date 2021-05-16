@@ -253,6 +253,10 @@ where
         // Once the blocking task is done executing, we will attempt to
         // steal the core back.
         let worker = cx.worker.clone();
+        // CC 为了能在当前worker thread 执行特定函数
+        // 需要将worker#core交给另一个thread执行
+        // Core上绑定了需要runtime数据，可以履行task，stealing等职能
+        // Core才是worker的代表，谁拥有Core，谁就可以run task
         runtime::spawn_blocking(move || run(worker));
     });
 
@@ -263,6 +267,7 @@ where
 
         crate::runtime::enter::exit(f)
     } else {
+        // CC 可以执行那个特定函数了
         f()
     }
 }
